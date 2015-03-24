@@ -409,6 +409,19 @@ complain (struct file *file)
     }
 }
 
+/* Mark the dependencies as considered in this pass (to avoid skipping them
+   on the next pass).  */
+static void
+consider_deps (struct dep *d)
+{
+  for (; d; d = d->next)
+    {
+      if (d->file->considered != considered)
+       consider_deps (d->file->deps);
+      d->file->considered = considered;
+    }
+}
+
 /* Consider a single 'struct file' and update it as appropriate.
    Return 0 on success, or non-0 on failure.  */
 
@@ -540,6 +553,13 @@ update_file_1 (struct file *file, unsigned int depth)
           int maybe_make;
           int dontcare = 0;
 
+          /* The code below will set the state to cs_deps_running.  */
+          if (d->wait && running)
+            {
+              consider_deps(d);
+              break;
+            }
+
           check_renamed (d->file);
 
           mtime = file_mtime (d->file);
@@ -616,6 +636,13 @@ update_file_1 (struct file *file, unsigned int depth)
   if (must_make || always_make_flag)
     {
       for (d = file->deps; d != 0; d = d->next)
+        {
+          /* The code below will set the state to cs_deps_running.  */
+          if (d->wait && running)
+            {
+              consider_deps(d);
+              break;
+            }
         if (d->file->intermediate)
           {
             enum update_status new;
@@ -667,6 +694,7 @@ update_file_1 (struct file *file, unsigned int depth)
               d->changed = ((file->phony && file->cmds != 0)
                             || file_mtime (d->file) != mtime);
           }
+        }
     }
 
   finish_updating (file);

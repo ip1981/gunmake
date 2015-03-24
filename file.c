@@ -474,6 +474,27 @@ split_prereqs (char *p)
   return new;
 }
 
+/* Notice special dependencies.  */
+static void
+notice_special_deps(struct dep **d_ptr)
+{
+  struct dep *d;
+
+restart_loop:
+  for (; *d_ptr; d_ptr = &(*d_ptr)->next)
+    {
+      d = *d_ptr;
+      if (!strcmp(d->name, ".WAIT"))
+       {
+         if (d->next)
+           d->next->wait = 1;
+         *d_ptr = d->next;
+         free_dep(d);
+         goto restart_loop;
+       }
+    }
+}
+
 /* Given a list of prerequisites, enter them into the file database.
    If STEM is set then first expand patterns using STEM.  */
 struct dep *
@@ -536,6 +557,9 @@ enter_prereqs (struct dep *deps, const char *stem)
           dp = dp->next;
         }
     }
+
+  if (sun_flag)
+    notice_special_deps(&deps);
 
   /* Enter them as files, unless they need a 2nd expansion.  */
   for (d1 = deps; d1 != 0; d1 = d1->next)

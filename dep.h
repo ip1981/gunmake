@@ -42,6 +42,7 @@ struct dep
     unsigned int staticpattern : 1;
     unsigned int need_2nd_expansion : 1;
     unsigned int dontcare : 1;
+    unsigned int wait : 1;
   };
 
 

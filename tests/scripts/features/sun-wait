@@ -1,0 +1,34 @@
+#                                                                    -*-perl-*-
+$description = "Check .WAIT special target";
+
+$details = "";
+
+run_make_test('
+one:
+	@sleep 2; echo $@
+two:
+	@echo $@
+
+three: one .WAIT two
+	@echo $@
+
+four: one two
+	@echo $@
+
+',
+'--sun three', # note: one job
+"one\ntwo\nthree");
+
+# Same file, but 3 jobs, must be the same result due to .WAIT:
+run_make_test(undef, '--sun -j3 three', "one\ntwo\nthree");
+
+# Same file, but "two" should not depend on "one":
+run_make_test(undef, '--sun two', "two");
+
+# Same file, but "two" should end earlier:
+run_make_test(undef, '--sun -j3 four', "two\none\nfour");
+# Same file, but "two" should end earlier even in mornal mode ;-)
+run_make_test(undef, '-j3 four', "two\none\nfour");
+
+# This tells the test driver that the perl test script executed properly.
+1;
