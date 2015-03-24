@@ -2567,6 +2567,14 @@ readline (struct ebuffer *ebuf)
         }
 #endif
 
+      /* In SunOS mode strip trailing spaces.  */
+      if (sun_flag)
+        {
+          while ((p - start) > 1 && (p[-2] == ' ' || p[-2] == '\t'))
+            --p;
+          p[-1] = '\n';
+        }
+
       backslash = 0;
       for (p2 = p - 2; p2 >= start; --p2)
         {
