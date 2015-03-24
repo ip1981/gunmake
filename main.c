@@ -247,6 +247,10 @@ int inhibit_print_directory_flag = 0;
 
 int print_version_flag = 0;
 
+/* Enable SunOS make syntax and features.  */
+
+int sun_flag = 0;
+
 /* List of makefiles given with -f switches.  */
 
 static struct stringlist *makefiles = 0;
@@ -418,6 +422,8 @@ static const char *const usage[] =
                               Consider FILE to be infinitely new.\n"),
     N_("\
   --warn-undefined-variables  Warn when an undefined variable is referenced.\n"),
+    N_("\
+  --sun                       Enable syntax and features of SunOS make.\n"),
     NULL
   };
 
@@ -481,6 +487,7 @@ static const struct command_switch switches[] =
       "warn-undefined-variables" },
     { CHAR_MAX+6, strlist, &eval_strings, 1, 0, 0, 0, 0, "eval" },
     { CHAR_MAX+7, string, &sync_mutex, 1, 1, 0, 0, 0, "sync-mutex" },
+    { CHAR_MAX+8, flag, &sun_flag, 1, 0, 0, 0, 0, "sun" },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
   };
 
@@ -1691,7 +1698,10 @@ main (int argc, char **argv, char **envp)
 #else
   define_variable_cname ("MAKE_COMMAND", argv[0], o_default, 0);
 #endif
+  if (!sun_flag)
   define_variable_cname ("MAKE", "$(MAKE_COMMAND)", o_default, 1);
+  else
+  define_variable_cname ("MAKE", "$(MAKE_COMMAND) --sun", o_default, 1);
 
   if (command_variables != 0)
     {
@@ -1790,6 +1800,10 @@ main (int argc, char **argv, char **envp)
   /* If -R was given, set -r too (doesn't make sense otherwise!)  */
   if (no_builtin_variables_flag)
     no_builtin_rules_flag = 1;
+
+  /* SunOS make always uses second expansion.  */
+  if (sun_flag)
+    second_expansion = 1;
 
   /* Construct the list of include directories to search.  */
 
