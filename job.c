@@ -1190,6 +1190,8 @@ start_job_command (struct child *child)
         flags |= COMMANDS_RECURSE;
       else if (*p == '-')
         child->noerror = 1;
+      else if (sun_flag && (*p == '?')) /* ignored.  */
+        ;
       else if (!isblank ((unsigned char)*p))
         break;
       ++p;
