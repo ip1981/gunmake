@@ -1492,6 +1492,9 @@ parse_variable_definition (const char *p, struct variable *var)
           switch (c)
             {
               case ':':
+                /* In sunmake mode ":=" is not a variable assignment.  */
+                if (sun_flag)
+                  return NULL;
                 var->flavor = f_simple;
                 break;
               case '+':

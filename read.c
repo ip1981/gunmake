@@ -1157,6 +1157,10 @@ eval (struct ebuffer *ebuf, int set_default)
         if (two_colon)
           p2++;
 
+        /* In sunmake mode ":=" means target-specific variable, not ":" */
+        if (sun_flag && (*p2 == '='))
+          p2++;
+
         /* Test to see if it's a target-specific variable.  Copy the rest
            of the buffer over, possibly temporarily (we'll expand it later
            if it's not a target-specific variable).  PLEN saves the length
@@ -2668,7 +2672,8 @@ get_next_mword (char *buffer, char *delim, char **startp, unsigned int *length)
 
         case '=':
           ++p;
-          wtype = w_varassign;
+          /* In sunmake mode ":=" acts as ":" in normal mode.  */
+          wtype = sun_flag ? w_colon : w_varassign;
           break;
         }
       break;

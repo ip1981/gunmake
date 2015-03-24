@@ -1,0 +1,23 @@
+#                                                                    -*-perl-*-
+$description = "Check SunOS make target-specific assignment.";
+
+$details = "In SunOS make mode ':=' is used for target-specific variable, instead of ':'
+Thus, ':=' cannot be used as variable assignment at all.";
+
+# SunOS make mode, $(other) is undefined:
+run_make_test('
+FOO = true
+all: other
+	@echo $(FOO)
+other := FOO = false
+other:
+	@echo $(FOO) $(other)
+',
+'--sun',
+"false\ntrue\n");
+
+# Same file, but in normal mode, $(other) is "FOO = false":
+run_make_test(undef, '', "true FOO = false\ntrue\n");
+
+# This tells the test driver that the perl test script executed properly.
+1;
